@@ -1,8 +1,9 @@
 package repository;
 
-import Auth.Credentials;
+import auth.Credentials;
+import java.sql.Connection;
 
 public interface CredentialsRepository {
-    void save(Credentials credentials);
-    Credentials findByUsername(String username);
+    void save(Connection connection, Credentials credentials);
+    Credentials findByUsername(Connection connection, String username);
 }
