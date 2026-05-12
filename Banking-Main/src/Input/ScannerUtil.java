@@ -9,40 +9,40 @@ public class ScannerUtil {
 
     // asking user to select the task
     public static int getIntInput(String choice) {
-        System.out.print(choice);
+        System.out.println(choice);
         while (!consoleInput.hasNextInt()) {
             consoleInput.next();
         }
-        return consoleInput.nextInt();
+        int input = consoleInput.nextInt();
+        consoleInput.nextLine();
+        return input;
     }
     public static BigDecimal amount(String choice) {
         System.out.print(choice);
-        while (!consoleInput.hasNextInt()) {
+        while (!consoleInput.hasNextBigDecimal()) {
             consoleInput.next();
         }
-        return consoleInput.nextBigDecimal();
+        BigDecimal inputAmount = consoleInput.nextBigDecimal();
+        consoleInput.nextLine();
+        return inputAmount;
     }
 
     public static String getStringInput(String msg) {
-        String input = "";
-        while (input.trim().isEmpty()) {
+        while (true) {
             System.out.print(msg);
-            input = consoleInput.nextLine();
+            String input = consoleInput.nextLine();
 
-            if (input.trim().isEmpty()) {
-                System.out.print("\u001B[31m Input cannot be empty!\u001B[0m");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+            if (!input.trim().isEmpty()) {
+                return input; // Return valid input immediately
             }
-            System.out.print("\r\u001b[2K");
+
+            // Show error if empty
+            System.out.print("\u001B[31m Input cannot be empty!\u001B[0m");
+            try { Thread.sleep(1000); } catch (InterruptedException e) { }
+            System.out.print("\r\u001b[2K"); // Clear the error line
         }
-        return input;
     }
     public static boolean proceedOrCancel() {
-        consoleInput.nextLine();
         String input = consoleInput.nextLine();
         if (input.trim().equals("1")) {
             return true;

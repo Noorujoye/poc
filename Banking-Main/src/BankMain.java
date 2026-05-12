@@ -5,11 +5,11 @@ import static util.AppFactory.loginHandler;
 
 public class BankMain {
     public static void main(String[] args) {
-        System.out.println("Welcome to Banking Service of India");
+        System.out.println("Welcome to Bank Service of India");
         while (true) {
             showMainCard();
             try {
-                int choice = getIntInput("How we can help you: \n");
+                int choice = getIntInput("How we can help you: ");
                 switch (choice) {
                     case 1:
                         registerCard();
@@ -18,9 +18,7 @@ public class BankMain {
                         loginHandler().login();
                         break;
                     case 3:
-                        System.out.println("Thank you for using Banking!");
-                    default:
-                        System.out.println("Invalid choice!");
+                        System.out.println("Thank you for using India Bank!");
                 }
             } catch (Exception e) {
                 System.out.println("Something went wrong! please try again...");

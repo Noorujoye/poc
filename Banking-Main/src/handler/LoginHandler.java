@@ -2,9 +2,13 @@ package handler;
 
 import auth.Credentials;
 import auth.SessionContext;
+import com.mysql.cj.log.Log;
+import model.Account;
 import service.AuthService;
 
+import static Input.ScannerUtil.amount;
 import static Input.ScannerUtil.getStringInput;
+import static util.AppFactory.accountService;
 
 public class LoginHandler {
     private final AuthService authService;
@@ -13,7 +17,7 @@ public class LoginHandler {
         this.authService = authService;
     }
     public void login() {
-        System.out.println("\nLogin into your account");
+        System.out.println("Login into your account");
         String username = getStringInput("username: ");
         String password = getStringInput("password: ");
         Credentials credentials = authService.login(username , password);
@@ -22,8 +26,11 @@ public class LoginHandler {
             System.out.println("Invalid username or password...");
             return;
         }
-        SessionContext.login(credentials);
+        Account account = accountService().getCurrentUserAccount(credentials.getCustomerId());
+
+        SessionContext.login(credentials , account);
         System.out.println("you are logged in...");
-        LoginCard.userLoginCard(username);
+        LoginCard loginCard = new LoginCard(credentials);
+        loginCard.displayMenu();
     }
 }

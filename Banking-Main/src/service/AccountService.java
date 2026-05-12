@@ -1,6 +1,7 @@
 package service;
 
 import database.DBConnection;
+import exception.InsufficientBalanceException;
 import model.Account;
 import repository.AccountRepository;
 
@@ -20,18 +21,20 @@ public  class AccountService {
     }
 
     private static final AtomicInteger sequence = new AtomicInteger(1000); // thread safe h
-    public static synchronized String generateAccountNumber() {
+    public static synchronized String generateAccountNumber() { // Atomic integer ensure no two threads get the same number ,
         String timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss"));
-        int seq = sequence.getAndIncrement();
-        if (seq > 9999) {
-            sequence.set(1000);
-        }
+//        int seq = sequence.getAndIncrement(); // updateAndGet()
+//        if (seq > 9999) {
+//            sequence.set(1000);
+//        }
+        // it is more secure
+        int seq = sequence.updateAndGet(s -> (s >= 9999) ? 1000 : s + 1); // this handles the reset logic automatically, prevents from multiple thread to get the same values
         final String accountNumber = timeStamp + seq;
         return accountNumber;
     }
     public Account getCurrentUserAccount(Long customerId) {
         try (Connection connection = DBConnection.getConnection()){
-            return accountRepo.findCustomerById(connection , customerId);
+            return accountRepo.findAccountByCustomerId(connection , customerId);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -44,7 +47,7 @@ public  class AccountService {
         try (Connection connection = DBConnection.getConnection()){
             connection.setAutoCommit(false);
             try {
-                Account account = accountRepo.findCustomerById(connection , customerId);
+                Account account = accountRepo.findAccountByCustomerId(connection , customerId);
                 if (account == null) {
                     throw new RuntimeException("Account not found...");
                 }
@@ -64,22 +67,69 @@ public  class AccountService {
         }
     }
     public void withdrawBalance(Long customerId ,BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Invalid amount");
-        }
 
         try (Connection connection = DBConnection.getConnection()) {
+            Account account = accountRepo.findAccountByCustomerId(connection , customerId);
+            if (account == null) {
+                System.out.println("Account not found...");
+                return;
+            }
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                System.out.println("Invalid amount. Please enter more than 0.");
+                return;
+            }
+            if (account.getBalance().compareTo(amount) < 0) {
+                System.out.println("Insufficient funds!, Your balance is : " + account.getBalance());
+                return;
+            }
             connection.setAutoCommit(false);
-            Account account = accountRepo.findCustomerById(connection , customerId);
-            BigDecimal beforeWithdraw  = account.getBalance();
-            BigDecimal afterWithdraw = beforeWithdraw.subtract(amount);
-            accountRepo.updateBalance(connection , account.getAccountNo() , afterWithdraw);
-            connection.commit();
-            System.out.println("Withdrawn successfully...");
-            System.out.println("before withdraw : ₹" + beforeWithdraw);
-            System.out.println("current Balance : ₹" + afterWithdraw);
+            try {
+                BigDecimal beforeWithdraw = account.getBalance();
+                BigDecimal afterWithdraw = beforeWithdraw.subtract(amount);
+                accountRepo.updateBalance(connection, account.getAccountNo(), afterWithdraw);
+                connection.commit();
+                System.out.println("Withdrawn successfully...");
+                System.out.println("before withdraw : ₹" + beforeWithdraw);
+                System.out.println("current Balance : ₹" + afterWithdraw);
+            } catch (Exception e) {
+                connection.rollback();
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void transferMoney(Long customerId , String toAccountNumber , BigDecimal amount) {
+        try (Connection connection = DBConnection.getConnection()) {
+            connection.setAutoCommit(false);
+            Account senderAccount = accountRepo.findAccountByCustomerId(connection , customerId);
+            Account recieverAccount = accountRepo.findCustomerByAccountNumber(connection , toAccountNumber);
+
+//            if (recieverAccount == null) {
+//                throw new RuntimeException("Receiver Account not found...");
+//            }
+//
+//            if (senderAccount.getBalance().compareTo(amount) < 0) {
+//                    throw new InsufficientBalanceException("Insufficient balance in your account.");
+//            }
+            System.out.println("current balance : " + senderAccount.getBalance());
+            BigDecimal newBalanceOfSender = senderAccount.getBalance().subtract(amount);
+            BigDecimal newBalanceOfReceiver = recieverAccount.getBalance().add(amount);
+            accountRepo.updateBalance(connection , senderAccount.getAccountNo() , newBalanceOfSender);
+            accountRepo.updateBalance(connection , recieverAccount.getAccountNo(), newBalanceOfReceiver);
+            connection.commit();
+            System.out.println("₹ " + amount + " transferred to " + recieverAccount.getAccountNo());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public BigDecimal getCurrentAccountBalance(Long customerId) {
+        try (Connection connection = DBConnection.getConnection()) {
+            Account account = accountRepo.findAccountByCustomerId(connection , customerId);
+            return account.getBalance();
+        } catch (SQLException e) {
+            throw new RuntimeException("DB Error...");
         }
     }
 }

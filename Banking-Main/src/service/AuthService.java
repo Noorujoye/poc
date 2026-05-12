@@ -6,7 +6,6 @@ import exception.AuthenticationFailedException;
 import repository.CredentialsRepository;
 import repository.impl.CredentialRepositoryDB;
 import util.PasswordUtil;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -28,5 +27,8 @@ public class AuthService {
         } catch (SQLException e) {
             throw new AuthenticationFailedException("Enter correct username or password");
         }
+    }
+    public boolean verifiyAccount(String accountNumber) {
+        return false;
     }
 }

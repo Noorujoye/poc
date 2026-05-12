@@ -17,8 +17,6 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import static handler.LoginCard.userLoginCard;
-
 public class CustomerService {
     private final AccountRepository accountRepo;
     private final CustomerRepository customerRepo;
@@ -32,42 +30,45 @@ public class CustomerService {
         this.credentialsRepo = credentialsRepo;
     }
 
-    public void registerCustomer(Customer customer, String username, String password) {
+    public String createInitialCustomerAndAccount(Customer customer) {
         try (Connection connection = DBConnection.getConnection()) {
             connection.setAutoCommit(false);
             try {
-                // duplicate username check , before saving
-                Credentials existingUser = credentialsRepo.findByUsername(connection, username);
-
-                if (existingUser != null) {
-                    throw new DuplicateUserException("Username already exists...");
-                }
-                // now the customer is saved to db
+                // save customer and getID
                 Long customerId = customerRepo.save(connection, customer);
-
-                // credentials creation
-                Credentials credentials = new Credentials(username, PasswordUtil.hashPassword(password), customerId);
-                credentialsRepo.save(connection, credentials);
+                customer.setCustomerId(customerId);
 
                 // create account
+                String accountNo = AccountService.generateAccountNumber();
                 Account account = new Account();
                 account.setCustomerId(customerId);
-                account.setAccountNo(AccountService.generateAccountNumber());
+                account.setAccountNo(accountNo);
                 account.setType(AccountType.SAVINGS); // by default from me
                 account.setBalance(new BigDecimal("0.00"));
                 account.setStatus(AccountStatus.ACTIVE);
                 accountRepo.save(connection, account);
-                customer.setKycStatus(KycStatus.VERIFIED);
                 connection.commit();
-                System.out.println("Account Created Successfully...");
-                System.out.println("Your Account Number : " + account.getAccountNo());
-                userLoginCard(username);
+                return accountNo;
             } catch (Exception e) {
                 connection.rollback();
-                throw new RuntimeException("Registration failed...", e);
+                System.out.println("registration failed...");
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Registration failed...");
+            System.out.println("Database error during registration");
+        }
+        return null;
+    }
+
+    public void saveCredentials(Long customerId, String username , String password) {
+        try (Connection connection = DBConnection.getConnection()) {
+            if (credentialsRepo.findByUsername(connection , username) != null) {
+                System.out.println("username already taken! ");
+            }
+            // credentials creation
+             Credentials credentials = new Credentials(username, PasswordUtil.hashPassword(password), customerId);
+             credentialsRepo.save(connection, credentials);
+        } catch (SQLException e) {
+            System.out.println("Failed to save credentials" + e);
         }
     }
 }

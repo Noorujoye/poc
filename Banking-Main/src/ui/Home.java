@@ -2,9 +2,10 @@ package ui;
 
 public class Home {
     public static void showMainCard() {
-        System.out.println("\n1. Register" +
-                           "\n2. Login" +
-                           "\n3. Exit"
-        );
+        System.out.println("""
+                1. Register
+                2. Login
+                3. Exit
+                """);
     }
 }

@@ -10,7 +10,6 @@ public class CustomerRepositoryDB implements CustomerRepository {
     @Override
     public Long save(Connection connection , Customer customer) {
         String saveToDB = "INSERT INTO CUSTOMERS (name , phone , pan_card, aadhaar , address ,  kyc_status) VALUES (? , ? , ? , ? , ?, ?)";
-        String customerByPhone = "SELECT * FROM CUSTOMERS WHERE phone = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(saveToDB , Statement.RETURN_GENERATED_KEYS)){
             ps.setString(1 , customer.getName());
@@ -27,13 +26,14 @@ public class CustomerRepositoryDB implements CustomerRepository {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to save customer " , e);
+            System.out.println("failed to save customer...");
         }
         return null;
     }
 
     @Override
     public Customer findByPhone(Connection connection , String phone) {
+        //String customerByPhone = "SELECT * FROM CUSTOMERS WHERE phone = ?";
         return null;
     }
 }

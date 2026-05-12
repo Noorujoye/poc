@@ -15,14 +15,22 @@ public class Customer {
                     String phone,
                     String panCard,
                     String aadhaar,
-                    String address) {
+                    String address, Enum kycStatus) {
 
         this.name = name;
         this.phone = phone;
         this.panCard = panCard;
         this.aadhaar = aadhaar;
         this.address = address;
-        this.kycStatus = KycStatus.PENDING;
+        this.kycStatus = KycStatus.VERIFIED;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
+
+    public Long getCustomerId() {
+        return customerId;
     }
 
     public String getName() {
@@ -41,21 +49,14 @@ public class Customer {
         return aadhaar;
     }
 
-    public void setAadhaar(String aadhaar) {
-        this.aadhaar = aadhaar;
-    }
-
     public String getAddress() {
         return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public KycStatus getKycStatus() {
         return kycStatus;
     }
+
 
     public void setKycStatus(KycStatus kycStatus) {
         this.kycStatus = kycStatus;
