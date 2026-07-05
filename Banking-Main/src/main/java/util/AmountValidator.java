@@ -1,0 +1,19 @@
+package util;
+
+import java.math.BigDecimal;
+
+public class AmountValidator {
+
+    private AmountValidator() {}
+
+    public static void validateAmount(BigDecimal amount) {
+
+        if (amount == null) {
+            throw new IllegalArgumentException("Amount cannot be null");
+        }
+
+        if(amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+    }
+}
