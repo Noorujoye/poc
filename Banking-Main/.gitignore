@@ -25,5 +25,29 @@ bin/
 ### VS Code ###
 .vscode/
 
-### Mac OS ###
+### Mac ###
 .DS_Store
+
+### Windows ###
+Thumbs.db
+Desktop.ini
+
+### Maven ###
+target/
+
+### IntelliJ ###
+.idea/
+*.iml
+
+### Java ###
+*.class
+
+### Logs ###
+*.log
+
+### Temp ###
+tmp/
+temp/
+
+### Environment ###
+.env
